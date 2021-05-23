@@ -1,8 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour {
+
+    public InputActionAsset controls;
 
     public float speed = 10.0f;
     public float jumpSpeed = 8.0f;
@@ -16,31 +19,34 @@ public class PlayerController : MonoBehaviour {
     float increment = 0f;
     float vertSpeed = 0f;
 
+    Vector3 moveDirection = Vector3.zero;
+
 	// Use this for initialization
-	void Start () {
+	void Awake () {
         cha = GetComponent<CharacterController>();
     }
 	
 	// Update is called once per frame
 	void Update () {
-        Vector3 moveDirection = CalculateXY();
-        moveDirection.y = CalculateVertical();
-
-        cha.Move(moveDirection *= Time.deltaTime);
+        //moveDirection.y = CalculateVertical();
+        CalculateXY(controls["Move"].ReadValue<Vector2>());
     }
     
-    Vector3 CalculateXY(){
-        Vector3 moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-        moveDirection = transform.TransformDirection(moveDirection);
-        moveDirection *= speed ;
-        return moveDirection;
+    public void CalculateXY(Vector2 inputDir){
+        Vector3 currentMoveDir = new Vector3(inputDir.x, 0, inputDir.y);
+
+        currentMoveDir = transform.TransformDirection(currentMoveDir);
+        currentMoveDir *= speed ;
+        this.moveDirection = currentMoveDir;
+
+        cha.Move(moveDirection *= Time.deltaTime);
+
     }
 
     float CalculateVertical(){
         if(cha.isGrounded) {
             vertSpeed = 0f;
             if (Input.GetButtonDown("Jump")) {
-                Debug.Log("JUMP");
                 isJumping = true;
             }
         }
